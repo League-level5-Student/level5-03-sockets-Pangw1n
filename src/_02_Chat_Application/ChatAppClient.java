@@ -16,16 +16,18 @@ public class ChatAppClient {
 	private int port;
 	private String ip;
 	
-	private ServerSocket server;
 	private Socket connection;
 
 	ObjectOutputStream os;
 	ObjectInputStream is;
 	
+	String username;
+	
 	public ChatAppClient(String ip, int port, ChatApp app) {
 		application = app;
 		this.port = port;
 		this.ip = ip;
+		username = app.username;
 	}
 	
 	public void start(){
@@ -37,11 +39,17 @@ public class ChatAppClient {
 
 			os.flush();
 			
+			sendMessage(username, "JOINED");
+			
 			while (connection.isConnected()) {
 				try {
 					String input = (String) is.readObject();
-					System.out.println(input);
-					application.addMessage(input);
+					int index = input.indexOf("\n");
+					String name = input.substring(0, index);
+					String text = input.substring(index + 1);
+					
+					System.out.println(name + ": " + input);
+					application.addMessage(name, text);
 				} catch(EOFException e) {
 					JOptionPane.showMessageDialog(null, "Connection Lost");
 					System.exit(0);
@@ -54,11 +62,11 @@ public class ChatAppClient {
 		}
 	}
 
-	public void sendMessage(JTextArea input) {
+	public void sendMessage(String name, String input) {
+		application.addMessage(name, input);
 		try {
 			if (os != null) {
-				os.writeObject(input.getText());
-				input.setText("");
+				os.writeObject(name + "\n" + input);
 				os.flush();
 			}
 		} catch (IOException e) {

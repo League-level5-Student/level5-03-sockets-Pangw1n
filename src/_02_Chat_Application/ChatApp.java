@@ -6,7 +6,9 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
 
 /*
  * Using the Click_Chat example, write an application that allows a server computer to chat with a client computer.
@@ -18,10 +20,14 @@ public class ChatApp {
 	JPanel inputPanel;
 	JTextArea text;
 	JTextArea textInput;
-	JButton send; 
+	JScrollPane chatArea;
+	JScrollPane messageArea;
+	JButton send;
 	
 	String ip;
 	int port;
+	
+	String username;
 	
 	public static void main(String[] args) {
 		new ChatApp();
@@ -29,6 +35,8 @@ public class ChatApp {
 	
 	public ChatApp()
 	{
+		username = JOptionPane.showInputDialog("Enter a username");
+		
 		String[] options = {"Join", "Host"};
 		int option = JOptionPane.showOptionDialog(null, "Would you like to host a room or join one", null, 0, 0, null, options, null);
 		System.out.println(option);
@@ -39,7 +47,7 @@ public class ChatApp {
 			ip = server.getIp();
 			port = server.getPort();
 			start();
-			send.addActionListener((e) -> {addMessage(textInput.getText()); server.sendMessage(textInput);});
+			send.addActionListener((e) -> {server.sendMessage(username, textInput.getText()); textInput.setText("");});
 			server.start();
 		}
 		else if (option == 0)
@@ -50,7 +58,7 @@ public class ChatApp {
 			
 			ChatAppClient client = new ChatAppClient(ip, port, this);
 			start();
-			send.addActionListener((e) -> {addMessage(textInput.getText()); client.sendMessage(textInput);});
+			send.addActionListener((e) -> {client.sendMessage(username, textInput.getText()); textInput.setText("");});
 			client.start();
 		}
 	}
@@ -63,17 +71,18 @@ public class ChatApp {
 		text = new JTextArea();
 		textInput = new JTextArea();
 		send = new JButton();
+		chatArea = new JScrollPane(text);
+		messageArea = new JScrollPane(textInput);
 		
 		frame.add(panel);
-		panel.add(text);
+		panel.add(chatArea);
 		panel.add(inputPanel);
-		inputPanel.add(textInput);
+		inputPanel.add(messageArea);
 		inputPanel.add(send);
 		
-		text.setPreferredSize(new Dimension(500, 500));
-		textInput.setPreferredSize(new Dimension(400, 50));
+		chatArea.setPreferredSize(new Dimension(500, 500));
+		messageArea.setPreferredSize(new Dimension(400, 50));
 		send.setPreferredSize(new Dimension(75,25));
-		
 		send.setText("Send");
 		
 		panel.setPreferredSize(new Dimension(500, 600));
@@ -87,8 +96,10 @@ public class ChatApp {
 		frame.pack();
 	}
 	
-	public void addMessage(String inputText)
+	public void addMessage(String name, String inputText)
 	{
-		text.setText(text.getText() + "\n" + inputText);
+		text.setText(text.getText() + "\n\n" + name + ": \n" + inputText);
 	}
 }
+
+//192.168.1.103
